@@ -46,7 +46,7 @@ function update() {
               );
 }
 
-async function getAverage(url) {
+async function getAverageByAPI(url) {
     try {
         const response = await fetch("https://pdf.pseudolab-devfactory.com/api/journalist/average-score", {
             method: "POST",
@@ -91,26 +91,7 @@ async function getAverage(url) {
     }
 }
 
-async function validate(url) {
-    try {
-        const response = await fetch("https://pdf.pseudolab-devfactory.com/api/journalist/validate", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                "journalisturl": url,
-            }),
-        });
-        const data = await response.json();
-        return data.exists;
-    } catch (error) {
-        console.error("Fetch 오류:", error);
-        return false;
-    }
-}
-
-async function add(url){
+async function postJournalInfoToDB(url){
     try {
         let likeCountElement = document.querySelectorAll('div._reactionModule.u_likeit.nv_notrans span.u_likeit_list_count._count');
         let usefulcount = parseInt(likeCountElement[0].textContent) || 0;
@@ -118,15 +99,17 @@ async function add(url){
         let touchedcount = parseInt(likeCountElement[2].textContent) || 0;
         let analyticalcount = parseInt(likeCountElement[3].textContent) || 0;
         let recommendcount = parseInt(likeCountElement[4].textContent) || 0;
+        let journalUrl = window.location.pathname
 
 
-        const response = await fetch("https://pdf.pseudolab-devfactory.com/api/journalist/add-score", {
+        const response = await fetch("https://pdf.pseudolab-devfactory.com/api/@", {
           method: "POST",
           headers: {
               "Content-Type": "application/json",
           },
           body: JSON.stringify({
             "journalisturl": url,
+            "journalurl": journalUrl,
             "useful": usefulcount,
             "touched": touchedcount,
             "recommend": recommendcount,
@@ -149,18 +132,8 @@ async function add(url){
 setTimeout(async function () {
     try {
         update();
-        const isValid = await validate(urlValue);
-//        기사 uri 검증
-        console.log(isValid);
-        if (isValid) {
-            console.log("Validation successful. Proceeding directly to select.");
-            add(urlValue);
-            getAverage(urlValue);
-        } else {
-            console.log("Validation failed. Proceeding with updateLikeCount and then select.");
-            add(urlValue);
-            getAverage(urlValue);
-        }
+        postJournalInfoToDB(urlValue);
+        getAverageByAPI(urlValue);
     } catch (error) {
         console.error("setTimeout 오류:", error);
     }
