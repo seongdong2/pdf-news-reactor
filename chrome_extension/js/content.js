@@ -9,6 +9,8 @@ const journalistNameElement = document.querySelector('.media_end_head_journalist
 const journalistUrlElement = document.querySelector('a.media_journalistcard_summary_photo');
 urlValue = journalistUrlElement.getAttribute('href');
 
+console.log(urlValue)
+
 if (journalistNameElement) {
   const journalistName = journalistNameElement.innerText.trim();
   chrome.storage.local.set({ journalist: journalistName }, function() {
@@ -48,24 +50,23 @@ function update() {
 
 async function getAverageByAPI(url) {
     try {
+        let journalUrl = window.location.pathname
+
         const response = await fetch("https://pdf.pseudolab-devfactory.com/api/journalist/average-score", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                "journalisturl": url,
+                "articleurl": url,
+                "journalisturl": journalUrl,
             }),
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
 
         const result = await response.json();
         const allZero = await Object.values(result).slice(1).every(value => value === 0);
 
-        if (allZero) {
+        if (false) {
             console.log("부족한 데이터로 조회가 어렵습니다.");
             alert("부족한 데이터로 조회가 어렵습니다.");
         } else {
@@ -101,15 +102,14 @@ async function postJournalInfoToDB(url){
         let recommendcount = parseInt(likeCountElement[4].textContent) || 0;
         let journalUrl = window.location.pathname
 
-
-        const response = await fetch("https://pdf.pseudolab-devfactory.com/api/@", {
+        const response = await fetch("https://pdf.pseudolab-devfactory.com/api/journalist/add-score", {
           method: "POST",
           headers: {
               "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            "journalisturl": url,
-            "journalurl": journalUrl,
+            "articleurl": url,
+            "journalisturl": journalUrl,
             "useful": usefulcount,
             "touched": touchedcount,
             "recommend": recommendcount,
